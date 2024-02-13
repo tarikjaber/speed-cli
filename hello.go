@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/progress"
+	"github.com/charmbracelet/lipgloss"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -24,12 +25,12 @@ type model struct {
 type tickMsg time.Time
 
 func initialModel() model {
-	progress := progress.New(
+	p := progress.New(
 		progress.WithoutPercentage(),
 		progress.WithWidth(50),
 	)
 	return model {
-		progress: progress,
+		progress: p,
 		pastScores: []int{},
 		score: taskTime,
 		tasksCompleted: 0,
@@ -72,13 +73,24 @@ func (m model) View() string {
 	}
 	
 	averageScore := sumScores / (m.tasksCompleted + 1)
+    
+	s := ""
+	s += fmt.Sprintf("Score: %d\n", averageScore)
+	s += m.progress.ViewAs(math.Max(0, float64(averageScore) / taskTime)) + "\n\n"
 
-	s := fmt.Sprintf("Average: %d\n", averageScore)
-	s += fmt.Sprintf("Score: %d\n", m.score)
-	s += fmt.Sprintf("Completed: %d\n\n", m.tasksCompleted)
-	s += m.progress.ViewAs(math.Max(0, float64(averageScore) / taskTime)) + "\n"
-	s += "\nPress n to continue.\n"
-	s += "Press q to quit.\n"
+	s += fmt.Sprintf("Completed: %d\n", m.tasksCompleted)
+	s += fmt.Sprintf("Current: %d\n", m.score)
+	s += "\nPress n to continue\n"
+	s += "Press q to quit\n"
+	
+	var style = lipgloss.NewStyle().
+    Bold(true).
+    PaddingTop(2).
+    PaddingLeft(2).
+    Width(60).Align(lipgloss.Center).
+	BorderStyle(lipgloss.NormalBorder())
+	
+	s = style.Render(s)
 
 	return s
 }
