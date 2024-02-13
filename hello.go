@@ -24,9 +24,11 @@ type model struct {
 type tickMsg time.Time
 
 func initialModel() model {
+	progress := progress.New()
+	progress.Width = 50
+	progress.ShowPercentage = false
 	return model {
-		progress: progress.New(
-		),
+		progress: progress,
 		pastScores: []int{},
 		score: taskTime,
 		tasksCompleted: 0,
