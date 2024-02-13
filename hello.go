@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"time"
 
-	// "github.com/charmbracelet/bubbles/progress"
-	// "github.com/charmbracelet/bubbles/timer"
+	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const (
+	taskTime = 1000
+)
+
 type model struct {
+	progress progress.Model
 	pastScores []int
 	score int
 	tasksCompleted int
@@ -20,14 +25,16 @@ type tickMsg time.Time
 
 func initialModel() model {
 	return model {
+		progress: progress.New(
+		),
 		pastScores: []int{},
-		score: 1000,
+		score: taskTime,
 		tasksCompleted: 0,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return tickCmd()
+	return tea.Batch(tickCmd(), tea.ClearScreen)
 }
 
 func (m model) Update (msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -39,7 +46,7 @@ func (m model) Update (msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "n":
 			m.tasksCompleted += 1
 			m.pastScores = append(m.pastScores, m.score)
-			m.score = 1000
+			m.score = taskTime
 		}
 	case tickMsg:
 		m.score -= 1
@@ -65,7 +72,8 @@ func (m model) View() string {
 
 	s := fmt.Sprintf("Average: %d\n", averageScore)
 	s += fmt.Sprintf("Score: %d\n", m.score)
-	s += fmt.Sprintf("Completed: %d\n", m.tasksCompleted)
+	s += fmt.Sprintf("Completed: %d\n\n", m.tasksCompleted)
+	s += m.progress.ViewAs(math.Max(0, float64(averageScore) / taskTime)) + "\n"
 	s += "\nPress n to continue.\n"
 	s += "Press q to quit.\n"
 
